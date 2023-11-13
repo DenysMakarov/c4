@@ -5,8 +5,8 @@ import './App.css';
 const NUM_ROWS = 6;
 const NUM_COLS = 7;
 const EMPTY_BOARD = () => Array(NUM_COLS).fill(null).map(() => Array(NUM_ROWS).fill(null));
-// const PLAYERS = { RED: 'red', YELLOW: 'yellow' };
-const PLAYERS = {RED: 1, YELLOW: 2};
+const PLAYERS = { RED: 'red', YELLOW: 'yellow' };
+// const PLAYERS = {RED: 1, YELLOW: 2};
 
 const App = () => {
     const [board, setBoard] = useState(EMPTY_BOARD);
