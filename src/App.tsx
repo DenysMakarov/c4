@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import './App.css';
+
 
 const NUM_ROWS = 6;
 const NUM_COLS = 7;
-const EMPTY_BOARD = Array(NUM_COLS).fill(null).map(() => Array(NUM_ROWS).fill(null));
-const PLAYERS = { RED: 'red', YELLOW: 'yellow' };
+const EMPTY_BOARD = () => Array(NUM_COLS).fill(null).map(() => Array(NUM_ROWS).fill(null));
+// const PLAYERS = { RED: 'red', YELLOW: 'yellow' };
+const PLAYERS = {RED: 1, YELLOW: 2};
 
 const App = () => {
     const [board, setBoard] = useState(EMPTY_BOARD);
     const [currentPlayer, setCurrentPlayer] = useState(PLAYERS.RED);
     const [winner, setWinner] = useState<string | null>(null);
+
+    useEffect(() => {
+        console.log(board)
+    }, [board])
 
     const checkWinner = (board: (string | null)[][]) => {
         const numRows = board[0].length;
@@ -100,11 +106,21 @@ const App = () => {
         }
     }, [board]);
 
-    const renderCell = (cell: string | null, colIndex: number, rowIndex: number) => (
-        <div className="cell" onClick={() => dropToken(colIndex)} key={`${colIndex}-${rowIndex}`}>
-            {cell && <div className={`token ${cell}`}></div>}
-        </div>
-    );
+    const renderCell = (cell: string | number | null, colIndex: number, rowIndex: number) => {
+
+        /*
+        * new logic
+        * */
+
+        let cls = cell === 1 ? 'red' : cell === 2 ? 'yellow' : null;
+
+        return (
+            <div className="cell" onClick={() => dropToken(colIndex)} key={`${colIndex}-${rowIndex}`}>
+                {cell && <div className={`token ${cls}`}></div>}
+            </div>
+        )
+
+    };
 
     const renderBoard = () => (
         <div className="board">
