@@ -5,8 +5,8 @@ import './App.css';
 const NUM_ROWS = 6;
 const NUM_COLS = 7;
 const EMPTY_BOARD = () => Array(NUM_COLS).fill(null).map(() => Array(NUM_ROWS).fill(null));
-const PLAYERS = { RED: 'red', YELLOW: 'yellow' };
-// const PLAYERS = {RED: 1, YELLOW: 2};
+// const PLAYERS = { RED: 'red', YELLOW: 'yellow' };
+const PLAYERS = {RED: 1, YELLOW: 2};
 
 const App = () => {
     const [board, setBoard] = useState(EMPTY_BOARD);
@@ -109,7 +109,7 @@ const App = () => {
     const renderCell = (cell: string | number | null, colIndex: number, rowIndex: number) => {
 
         /*
-        * new logic
+        * new logic added
         * */
 
         let cls = cell === 1 ? 'red' : cell === 2 ? 'yellow' : null;
