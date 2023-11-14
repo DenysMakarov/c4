@@ -1,0 +1,74 @@
+@import "src/shared/style/def_mixins";
+@import "src/shared/style/def_variable";
+
+.dashboard{
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  margin: auto;
+  width: 400px;
+
+  & div {
+    width: 25%;
+  }
+
+  & .info{
+    @include flex-center;
+    width: 49%;
+
+    & p {
+      border: 1px solid #714B33;
+      color: #714B33;
+      padding: 8px;
+      border-radius: 5px;
+    }
+  }
+
+  & .player-wrapper{
+    @include flex-center;
+    position: relative;
+
+    & .player{
+      width: 70%;
+      height: 70%;
+      border-radius: 50%;
+      border: 1px solid black;
+      @include flex-center;
+      opacity: 1;
+
+      &.red{
+        background: $redcolor;
+      }
+
+      &.yellow{
+        background: $yellowcolor;
+      }
+    }
+
+    & .active{
+      opacity: .3;
+    }
+
+    & .wins{
+      position: absolute;
+      width: 30%;
+      height: 30%;
+      border-radius: 50%;
+      right: 10%;
+      bottom: 10%;
+      background: #ffff;
+      border: 1px solid black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
+  & .player-wrapper:last-child{
+    transform: rotateY(180deg);
+
+    & p{
+      transform: rotateY(180deg);
+    }
+  }
+}

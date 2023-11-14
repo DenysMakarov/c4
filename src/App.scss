@@ -1,0 +1,28 @@
+@import "src/shared/style/def_mixins";
+@import "src/shared/style/def_variable";
+
+.App {
+  text-align: center;
+
+}
+
+
+.row {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.red {
+  background-color: $redcolor;
+}
+
+.yellow {
+  background-color: $yellowcolor;
+}
+
+
+
+
+
+

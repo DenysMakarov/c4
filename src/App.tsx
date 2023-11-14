@@ -1,91 +1,86 @@
-import React, {useState, useEffect} from 'react';
-import './App.css';
+import React, {useState, createContext, useEffect, useCallback, useMemo} from 'react';
+import './App.scss';
+import {NUM_ROWS, PLAYERS} from "./utils/constants";
+import Board from "./cmps/board/board/Board";
+import {checkForWinner, deepClone, emptyBoard} from "./utils/utils";
+import Cell from "./cmps/board/cell/Cell";
+import DropBtns from "./cmps/dropBtns/DropBtns";
+import Dashboard from "./cmps/dashboard/dashboard/Dashboard";
 
+const mockBoard = [
+    [1, null, null, null, null, null],
+    [null, null, 2, null, null, null],
+    [1, null, null, null, null, null],
+    [null, null, null, null, null, 1],
+    [null, 2, 1, null, null, null],
+    [null, null, null, null, null, null],
+    [2, 2, null, null, null, null],
+]
 
-const NUM_ROWS = 6;
-const NUM_COLS = 7;
-const EMPTY_BOARD = () => Array(NUM_COLS).fill(null).map(() => Array(NUM_ROWS).fill(null));
-// const PLAYERS = { RED: 'red', YELLOW: 'yellow' };
-const PLAYERS = {RED: 1, YELLOW: 2};
+interface IContext {
+    dropToken: (colIndex: number) => void,
+    resetGame: () => void,
+    resetScore: () => void
+}
 
-const App = () => {
-    const [board, setBoard] = useState(EMPTY_BOARD);
+export interface IPlayer {
+    name: number;
+    score: number;
+}
+
+export const AppContext = createContext<IContext | null>(null)
+
+const  App = () => {
+
+    const initialPlayers = useMemo(() => {
+        const storedPlayers = localStorage.getItem('playerScores');
+        return storedPlayers ? JSON.parse(storedPlayers) : [
+            { name: 1, score: 0 },
+            { name: 2, score: 0 }
+        ];
+    }, []);
+
+    const [players, setPlayers] = useState<IPlayer[]>(initialPlayers);
+
+    const [board, setBoard] = useState(emptyBoard);
     const [currentPlayer, setCurrentPlayer] = useState(PLAYERS.RED);
-    const [winner, setWinner] = useState<string | null>(null);
+    const [winner, setWinner] = useState<string | number | null>(null);
 
     useEffect(() => {
-        console.log(board)
-    }, [board])
+        localStorage.setItem('playerScores', JSON.stringify(players));
+    }, [players]);
 
-    const checkWinner = (board: (string | null)[][]) => {
-        const numRows = board[0].length;
-        const numCols = board.length;
-
-        // Check vertical
-        for (let col = 0; col < numCols; col++) {
-            for (let row = 0; row < numRows - 3; row++) {
-                if (board[col][row] && board[col][row] === board[col][row + 1] &&
-                    board[col][row] === board[col][row + 2] && board[col][row] === board[col][row + 3]) {
-                    return board[col][row];
-                }
+    const updatePlayerScore = useCallback((winner: number) => {
+        const updatedPlayers = players.map(player => {
+            if (player.name === winner) {
+                return { ...player, score: player.score + 1 };
             }
-        }
+            return player;
+        });
 
-        // Check horizontal
-        for (let row = 0; row < numRows; row++) {
-            for (let col = 0; col < numCols - 3; col++) {
-                if (board[col][row] && board[col][row] === board[col + 1][row] &&
-                    board[col][row] === board[col + 2][row] && board[col][row] === board[col + 3][row]) {
-                    return board[col][row];
-                }
-            }
-        }
+        setPlayers(updatedPlayers);
+    }, [players]);
 
-        // Check diagonal (down-right and up-right)
-        for (let col = 0; col < numCols - 3; col++) {
-            for (let row = 0; row < numRows - 3; row++) {
-                if (board[col][row] && board[col][row] === board[col + 1][row + 1] &&
-                    board[col][row] === board[col + 2][row + 2] && board[col][row] === board[col + 3][row + 3]) {
-                    return board[col][row];
-                }
-            }
-            for (let row = 3; row < numRows; row++) {
-                if (board[col][row] && board[col][row] === board[col + 1][row - 1] &&
-                    board[col][row] === board[col + 2][row - 2] && board[col][row] === board[col + 3][row - 3]) {
-                    return board[col][row];
-                }
-            }
-        }
+     const dropToken = (colIndex: number) => {
+        if (winner) return;
 
-        // Check for draw
-        let isDraw = true;
-        for (let col = 0; col < numCols; col++) {
-            for (let row = 0; row < numRows; row++) {
-                if (!board[col][row]) {
-                    isDraw = false;
-                    break;
-                }
-            }
-            if (!isDraw) {
-                break;
-            }
-        }
-
-        if (isDraw) {
-            return 'Draw';
-        }
-
-        return null;
-    };
-
-
-    const dropToken = (colIndex: number) => {
-        if (winner) return; // Disable token drop if game is over
-
-        const newBoard = [...board];
+        const newBoard = deepClone(board);
         for (let row = 0; row < NUM_ROWS; row++) {
             if (!newBoard[colIndex][row]) {
                 newBoard[colIndex][row] = currentPlayer;
+
+                const gameResult = checkForWinner(newBoard);
+
+                if (gameResult === PLAYERS.RED) {
+                    setWinner(gameResult);
+                    updatePlayerScore(1);
+                } else if (gameResult === PLAYERS.YELLOW) {
+                    setWinner(gameResult);
+                    updatePlayerScore(2);
+                } else if (gameResult === 'draw') {
+                    setWinner("Draw");
+                }
+
                 setBoard(newBoard);
                 setCurrentPlayer(currentPlayer === PLAYERS.RED ? PLAYERS.YELLOW : PLAYERS.RED);
                 break;
@@ -93,53 +88,33 @@ const App = () => {
         }
     };
 
-    const resetGame = () => {
-        setBoard(EMPTY_BOARD);
-        setCurrentPlayer(PLAYERS.RED);
+    const resetGame = useCallback(() => {
         setWinner(null);
-    };
+        setBoard(emptyBoard);
+        setCurrentPlayer(PLAYERS.RED)
+    }, [])
 
-    useEffect(() => {
-        const result = checkWinner(board);
-        if (result) {
-            setWinner(result === 'Draw' ? 'Draw' : `${result} won!`);
-        }
-    }, [board]);
+    const resetScore = useCallback(() => {
+        localStorage.setItem('playerScores', JSON.stringify(initialPlayers))
+        setPlayers([
+            { name: 1, score: 0 },
+            { name: 2, score: 0 }
+        ])
+        resetGame()
+    }, [initialPlayers, resetGame])
 
-    const renderCell = (cell: string | number | null, colIndex: number, rowIndex: number) => {
-
-        /*
-        * new logic added
-        * */
-
-        let cls = cell === 1 ? 'red' : cell === 2 ? 'yellow' : null;
-
-        return (
-            <div className="cell" onClick={() => dropToken(colIndex)} key={`${colIndex}-${rowIndex}`}>
-                {cell && <div className={`token ${cls}`}></div>}
-            </div>
-        )
-
-    };
-
-    const renderBoard = () => (
-        <div className="board">
-            {board.map((column, colIndex) => (
-                <div key={colIndex} className="column">
-                    {column.map((cell, rowIndex) => renderCell(cell, colIndex, rowIndex))}
-                </div>
-            ))}
-        </div>
-    );
 
     return (
-        <div className="App">
-            <h1>Connect Four</h1>
-            <h2>{winner ? winner : `${currentPlayer}'s turn`}</h2>
-            {renderBoard()}
-            {winner && <button onClick={resetGame}>Play Again</button>}
-        </div>
+        <AppContext.Provider value={{dropToken, resetGame, resetScore}} >
+            <div className="App">
+                <h1>Connect Four</h1>
+                <Dashboard winner={winner} currentPlayer={currentPlayer} players={players}/>
+                <DropBtns board={board} winner={winner} currentPlayer={currentPlayer}/>
+                <Board board={board}/>
+            </div>
+        </AppContext.Provider>
+
     );
-};
+}
 
 export default App;
